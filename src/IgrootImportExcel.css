@@ -1,0 +1,42 @@
+.igroot-import-excel .ant-upload-list {
+  display: none;
+}
+
+.igroot-import-excel-modal {
+  position: relative;
+}
+
+.igroot-import-excel-modal .set-column {
+  position: absolute;
+  width: 100%;
+  padding: 20px;
+  top: 115px;
+  left: 0px;
+}
+
+.igroot-import-excel-modal .set-icon {
+  position: absolute;
+  right: 30px; 
+  top: 2px;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.igroot-import-excel-modal .set-content {
+  margin: 20px 0;
+}
+
+.igroot-import-excel-modal .set-label {
+  display: inline-block;
+  width: 25%;
+  text-align: center;
+  margin-bottom: 20px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.igroot-import-excel-modal .set-input {
+  display: inline-block;
+  width: 30%;
+  margin-left: 10px;
+}
