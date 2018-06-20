@@ -16,7 +16,8 @@ export default class IgrootImportExcel extends Component {
     className: PropTypes.string,
     type: PropTypes.string,
     autoPreview: PropTypes.bool,
-    columnRules: PropTypes.object
+    columnRules: PropTypes.object,
+    onImportSuccess: PropTypes.func
   }
 
   static defaultProps = {
@@ -24,7 +25,8 @@ export default class IgrootImportExcel extends Component {
     className: '',
     type: 'click', // type: 'click' or 'drag'
     autoPreview: true,
-    columnRules: {}
+    columnRules: {},
+    onImportSuccess: () => {}
   }
 
   constructor(props) {
@@ -117,6 +119,7 @@ export default class IgrootImportExcel extends Component {
   importSuccess = () => {
     const { onImportSuccess } = this.props 
     const data = this.getSelectedData()
+
     onImportSuccess && onImportSuccess(data)  
   }
 

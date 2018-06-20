@@ -38,6 +38,8 @@ cols: 1
 | type | 类型 | String | 两种类型：'click' 和 'drag', 默认值 'click' |
 | autoPreview | 是否预览 | boolean | false |
 | columnRules | 配置要显示的字段 | Object | - |
+| onImportSuccess | 导入成功的回调函数 | function | - |
+
 
 #### columnRules
 ```jsx
