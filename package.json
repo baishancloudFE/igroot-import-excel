@@ -1,6 +1,6 @@
 {
   "name": "igroot-import-excel",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "导入 excel 格式化",
   "main": "index.js",
   "keywords": [
