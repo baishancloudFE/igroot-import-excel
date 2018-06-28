@@ -35,6 +35,7 @@ export default class IgrootImportExcel extends Component {
     this.state = {
       visible: false,
       uploadLoading: false,
+      setColumns: [],
       columns: [],
       uploadData: [],
       selectedRowKeys: [],
@@ -49,7 +50,8 @@ export default class IgrootImportExcel extends Component {
     const fileType = fileName[fileName.length - 1]
 
     this.setState({
-      columns: []
+      columns: [],
+      setColumns: []
     })
 
     if (fileType == 'xls' || fileType == 'xlsx') {
@@ -82,15 +84,33 @@ export default class IgrootImportExcel extends Component {
   }
 
   handleChangeSetting = (key, type, value) => {
+    const { setColumns } = this.state 
+    
+    setColumns.map(item => {
+      if(key.includes(item.key)) {
+        item[type] = value 
+      }
+    })
+    
+    this.setState({ setColumns })
+  }
+
+  handleChangeSwitch = (key, type, value) => {
     const { columns } = this.state 
     
     columns.map(item => {
-      if(item.key === key) {
+      if(key.includes(item.key)) {
         item[type] = value 
       }
     })
     
     this.setState({ columns })
+  }
+
+  handleBlurSetting = (key, type, value) => {
+    const { setColumns } = this.state 
+    
+    this.setState({ columns: setColumns })
   }
 
   handleSelectChange = (selectedRowKeys, selectedRows) => {
@@ -166,12 +186,14 @@ export default class IgrootImportExcel extends Component {
 
       const header = newData[0]
       const columns = header.map((item, index) => {
-        const col = columnRules[item.trim()] || {}
+        const colKey = Object.keys(columnRules).find(key => item.trim().includes(key))
+        console.log(colKey, item.trim())
+        const col = columnRules[colKey] || {}
         const key = col.key || String.fromCharCode(index+65)
         const width = col.width || 100
 
         return {
-          show: !Object.keys(columnRules).length || !!columnRules[item.trim()],
+          show: colKey,
           title: item,
           dataIndex: key,
           key,
@@ -201,13 +223,14 @@ export default class IgrootImportExcel extends Component {
           visible: true,
           uploadLoading: false,
           columns,
+          setColumns: columns,
           uploadData,
           selectedRowKeys
         })
       } else {
         this.setState({
           visible: false,
-          columns,
+          setColumns: columns,
           uploadData,
           selectedRowKeys
         }, () => {
@@ -218,7 +241,8 @@ export default class IgrootImportExcel extends Component {
   }
 
   renderSetContent() {
-    const { columns } = this.state 
+    const { setColumns } = this.state 
+    const columns = setColumns
 
     return (
       <Row>
@@ -228,18 +252,21 @@ export default class IgrootImportExcel extends Component {
               <Switch 
                 className="set-switch" 
                 checked={item.show} 
-                onChange={(ev) => {this.handleChangeSetting(item.key, 'show', ev)}}/>
+                onChange={(ev) => {this.handleChangeSwitch(item.key, 'show', ev)}}/>
               <span className="set-label">{item.title}</span>
               <Input  
                 className="set-input" 
                 placeholder="Key" 
                 value={item.key || ''}  
-                onChange={(ev) => {this.handleChangeSetting(item.key, 'key', ev.target.value)}} />
+                onChange={(ev) => {this.handleChangeSetting(item.key, 'key', ev.target.value)}}
+                onBlur={(ev) => {this.handleBlurSetting(item.key, 'key', ev.target.value)}} 
+              />
               <Input 
                 className="set-input" 
                 placeholder="Width" 
-                value={item.width || ''}  
-                onChange={(ev) => {this.handleChangeSetting(item.key, 'width', parseInt(ev.target.value))}} />
+                value={item.width || ''} 
+                onChange={(ev) => {this.handleChangeSetting(item.key, 'width', parseInt(ev.target.value))}} 
+                onBlur={(ev) => {this.handleBlurSetting(item.key, 'width', parseInt(ev.target.value))}} />
             </Col>
           ))
         }
