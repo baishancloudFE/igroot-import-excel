@@ -41,6 +41,12 @@
 
 .igroot-import-excel-modal .set-input {
   display: inline-block;
-  width: 30%;
+  width: 40%;
+  margin-left: 10px;
+}
+
+.igroot-import-excel-modal .set-input.input-width {
+  display: inline-block;
+  width: 20%;
   margin-left: 10px;
 }

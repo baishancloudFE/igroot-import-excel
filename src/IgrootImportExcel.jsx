@@ -1,10 +1,11 @@
+import './IgrootImportExcel.css'
+
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import { Upload, Modal, Table, Spin, Alert, Icon, Card, Input, Row, Col, Switch } from 'igroot'
 import XLSX from 'xlsx'
 
-
-import './IgrootImportExcel.css'
+import { ExcelSetting } from './ExcelSetting'
 
 const Dragger = Upload.Dragger
 
@@ -16,6 +17,7 @@ export default class IgrootImportExcel extends Component {
     className: PropTypes.string,
     type: PropTypes.string,
     autoPreview: PropTypes.bool,
+    needEqual: PropTypes.bool,
     columnRules: PropTypes.object,
     onImportSuccess: PropTypes.func
   }
@@ -25,6 +27,7 @@ export default class IgrootImportExcel extends Component {
     className: '',
     type: 'click', // type: 'click' or 'drag'
     autoPreview: true,
+    needEqual: false,
     columnRules: {},
     onImportSuccess: () => {}
   }
@@ -35,7 +38,6 @@ export default class IgrootImportExcel extends Component {
     this.state = {
       visible: false,
       uploadLoading: false,
-      setColumns: [],
       columns: [],
       uploadData: [],
       selectedRowKeys: [],
@@ -45,13 +47,14 @@ export default class IgrootImportExcel extends Component {
 
   emptyNum = 0
 
+  editingColumns = []
+
   handleBeforeUpload = (file) => {
     const fileName = file.name.split('.')
     const fileType = fileName[fileName.length - 1]
 
     this.setState({
-      columns: [],
-      setColumns: []
+      columns: []
     })
 
     if (fileType == 'xls' || fileType == 'xlsx') {
@@ -82,35 +85,23 @@ export default class IgrootImportExcel extends Component {
       setting: !setting 
     })
   }
+  
+  handleSetSuccess = (values) => {
+    const { columns, setting } = this.state 
 
-  handleChangeSetting = (key, type, value) => {
-    const { setColumns } = this.state 
-    
-    setColumns.map(item => {
-      if(key.includes(item.key)) {
-        item[type] = value 
-      }
-    })
-    
-    this.setState({ setColumns })
-  }
-
-  handleChangeSwitch = (key, type, value) => {
-    const { columns } = this.state 
-    
+    const newColumns = []
     columns.map(item => {
-      if(key.includes(item.key)) {
-        item[type] = value 
+      if (values[item.id].show) {
+        newColumns.push(values[item.id])
+      } else {
+        newColumns.push(item) 
       }
     })
     
-    this.setState({ columns })
-  }
-
-  handleBlurSetting = (key, type, value) => {
-    const { setColumns } = this.state 
-    
-    this.setState({ columns: setColumns })
+    this.setState({
+      columns: newColumns,
+      setting: !setting 
+    })
   }
 
   handleSelectChange = (selectedRowKeys, selectedRows) => {
@@ -144,7 +135,7 @@ export default class IgrootImportExcel extends Component {
   }
 
   getXLSData = (file) => {
-    const { columnRules, autoPreview } = this.props 
+    const { columnRules, autoPreview, needEqual } = this.props 
     const reader = new FileReader()
     reader.readAsBinaryString(file)
     
@@ -186,17 +177,24 @@ export default class IgrootImportExcel extends Component {
 
       const header = newData[0]
       const columns = header.map((item, index) => {
-        const colKey = Object.keys(columnRules).find(key => item.trim().includes(key))
-        console.log(colKey, item.trim())
+        let colKey = Object.keys(columnRules).find(key => item.trim().includes(key))
+        if (needEqual) {
+          colKey = Object.keys(columnRules).find(key => item.trim() === key.trim())
+        }
+
         const col = columnRules[colKey] || {}
-        const key = col.key || String.fromCharCode(index+65)
+        const id = String.fromCharCode(index+65)
+        const key = col.key || id
         const width = col.width || 100
 
+        
+
         return {
-          show: colKey,
+          id: id,
+          show: !!colKey,
           title: item,
-          dataIndex: key,
           key,
+          dataIndex: key,
           width
         }
       })
@@ -218,60 +216,16 @@ export default class IgrootImportExcel extends Component {
       selectedRowKeys.push(0)
       selectedRowKeys.push(uploadData.length)
 
-      if (autoPreview) {
-        this.setState({
-          visible: true,
-          uploadLoading: false,
-          columns,
-          setColumns: columns,
-          uploadData,
-          selectedRowKeys
-        })
-      } else {
-        this.setState({
-          visible: false,
-          setColumns: columns,
-          uploadData,
-          selectedRowKeys
-        }, () => {
-          this.importSuccess()
-        })
-      }
+      this.setState({
+        visible: autoPreview,
+        uploadLoading: false,
+        columns,
+        uploadData,
+        selectedRowKeys
+      }, () => {
+        !autoPreview && this.importSuccess()
+      })
     }
-  }
-
-  renderSetContent() {
-    const { setColumns } = this.state 
-    const columns = setColumns
-
-    return (
-      <Row>
-        {
-          columns.map(item => (
-            <Col span={12} key={item.key}>
-              <Switch 
-                className="set-switch" 
-                checked={item.show} 
-                onChange={(ev) => {this.handleChangeSwitch(item.key, 'show', ev)}}/>
-              <span className="set-label">{item.title}</span>
-              <Input  
-                className="set-input" 
-                placeholder="Key" 
-                value={item.key || ''}  
-                onChange={(ev) => {this.handleChangeSetting(item.key, 'key', ev.target.value)}}
-                onBlur={(ev) => {this.handleBlurSetting(item.key, 'key', ev.target.value)}} 
-              />
-              <Input 
-                className="set-input" 
-                placeholder="Width" 
-                value={item.width || ''} 
-                onChange={(ev) => {this.handleChangeSetting(item.key, 'width', parseInt(ev.target.value))}} 
-                onBlur={(ev) => {this.handleBlurSetting(item.key, 'width', parseInt(ev.target.value))}} />
-            </Col>
-          ))
-        }
-      </Row>
-    )
   }
 
   render() {
@@ -281,7 +235,7 @@ export default class IgrootImportExcel extends Component {
     const newColumns = columns.filter(item => item.show)
     const rowSelection = {
       selectedRowKeys,
-      onChange: this.handleSelectChange,
+      onChange: this.handleSelectChange
     }
 
     return (
@@ -299,9 +253,7 @@ export default class IgrootImportExcel extends Component {
           { 
             setting &&
             <Card className="set-content">
-              {
-                this.renderSetContent()
-              }
+              <ExcelSetting columns={columns} onSetSuccess={this.handleSetSuccess}/>
             </Card>
           }
           <div className="set-column">

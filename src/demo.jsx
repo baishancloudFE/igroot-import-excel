@@ -9,7 +9,7 @@ export default class App extends Component {
 
   render() {
     const columnRules = {
-      "ISP": {
+      "ISP1": {
         key: 'isp',
         width: 50
       },
@@ -22,6 +22,7 @@ export default class App extends Component {
     return (
       <IgrootImportExcel 
         columnRules={columnRules}
+        needEqual={true}
         onImportSuccess={this.handleImportSuccess}
       >
         <Button> 上传 Excel 文件</Button>
